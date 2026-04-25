@@ -128,3 +128,4 @@ func insertAlbumIntoAlumbs(album []Album){
 }
 
 
+// Add next methods to delete and update an album from MySQL DB
