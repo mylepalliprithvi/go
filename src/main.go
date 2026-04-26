@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
 var db *sql.DB;
@@ -18,6 +19,10 @@ type Album struct{
 }
 
 func main() {
+	errr := godotenv.Load("cfg.env")
+	if errr!=nil{
+		log.Fatal("Error loading env file")
+	}
 	cfg := mysql.NewConfig()
 	cfg.User = os.Getenv("DBUSER")
 	cfg.Passwd = os.Getenv("DBPASS")
@@ -29,39 +34,46 @@ func main() {
 	db, err = sql.Open("mysql",cfg.FormatDSN())
 
 	if err!=nil{
+		fmt.Println("error connecting to mysql db")
 		log.Fatal(err)
 	}
 	pingError := db.Ping()
 	if pingError!=nil{
+		fmt.Println("ping error")
 		log.Fatal(pingError)
 	}
 	fmt.Println("Connection established")
 
-	albumsByArtist,err:=albumByArtist("John Coltrane")	
-	if err!=nil{
-	log.Fatal("Eror returned")
-	}
+	// albumsByArtist,err:=albumByArtist("John Coltrane")	
+	// if err!=nil{
+	// log.Fatal("Eror returned")
+	// }
 
-	fmt.Println(albumsByArtist)
+	// fmt.Println(albumsByArtist)
 
 	
 
-	albumToInsert := []Album{
-		{
-			Title: "Dhurandhar",
-			Artist: "Shashwat Sachdev",
-			Price: 72.49,
-		},
-	}
-	insertAlbumIntoAlumbs(albumToInsert)
+	// albumToInsert := []Album{
+	// 	{
+	// 		Title: "Dhurandhar",
+	// 		Artist: "Shashwat Sachdev",
+	// 		Price: 72.49,
+	// 	},
+	// }
+	// insertAlbumIntoAlumbs(albumToInsert)
 
 
-	albumsByPrice, err := filterAlbumByPrice()
-	if err!=nil{
-		log.Fatal(err)
-	}
+	// albumsByPrice, err := filterAlbumByPrice()
+	// if err!=nil{
+	// 	log.Fatal(err)
+	// }
 
-	fmt.Println(albumsByPrice)
+	// fmt.Println(albumsByPrice)
+
+	deleteAlbumFromAlbums("Dhurandhar")
+
+	db.Close()
+
 }
 
 
@@ -127,5 +139,18 @@ func insertAlbumIntoAlumbs(album []Album){
 	fmt.Printf("Executed insert quuery. Rows affected: %d\n",rowsAffected)
 }
 
-
-// Add next methods to delete and update an album from MySQL DB
+func deleteAlbumFromAlbums(title string){
+	rowsUpdated, err := db.Exec("DELETE from album where title=?",title)
+	if err!=nil{
+		fmt.Println("Error executing delete query")
+		log.Fatal(err)
+		os.Exit(-1)
+	}
+	numRowsUpdated,err := rowsUpdated.RowsAffected()
+	if err!=nil{
+		fmt.Println("Error printing rows updated")
+		log.Fatal(err)
+		os.Exit(-1)
+	}
+	fmt.Println(numRowsUpdated)
+}
