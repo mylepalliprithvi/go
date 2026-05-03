@@ -70,7 +70,9 @@ func main() {
 
 	// fmt.Println(albumsByPrice)
 
-	deleteAlbumFromAlbums("Dhurandhar")
+	// deleteAlbumFromAlbums("Dhurandhar")
+
+	updateTitleOfArtist("After Hours","The Weeknd")
 
 	db.Close()
 
@@ -153,4 +155,39 @@ func deleteAlbumFromAlbums(title string){
 		os.Exit(-1)
 	}
 	fmt.Println(numRowsUpdated)
+}
+
+func updateTitleOfArtist(title string, artist string){
+
+	//check a title of the artist already exists beforehand
+	var countRows int64
+	err:= db.QueryRow("SELECT count(*) from album where artist=?",artist).Scan(&countRows)
+	if err!=nil{
+		log.Fatal("Error fetching count of albumn from db  for artist ",artist)
+		os.Exit(-1)
+	}
+	if countRows==0{
+		log.Fatal("No entries in db for artist ",artist)
+	}
+	rowsUpdated, err := db.Exec("UPDATE album SET title=? where artist=?",title,artist)
+	if err!=nil{
+		fmt.Println("Error executing update title of artist query")
+		log.Fatal(err)
+		os.Exit(-1)
+	}
+
+	numRowsUpdated,err := rowsUpdated.RowsAffected()
+	if err!=nil{
+		fmt.Println("error fetching number of rows updated query")
+		log.Fatal(err)
+		os.Exit(-1)
+	}
+
+	fmt.Println("Number of rows updated: ",numRowsUpdated)
+
+	if countRows!=numRowsUpdated{
+		fmt.Println("Mismatch in number of rows updated!!!")
+		log.Fatal("Error!!")
+		os.Exit(-1)
+	}
 }
